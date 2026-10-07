@@ -1,0 +1,1456 @@
+You are a senior full-stack engineer, UI/UX designer, database architect and DevOps engineer.
+
+Build a production-ready full-stack web application called:
+
+SMART CIVIC RESOURCE DASHBOARD
+
+==================================================
+1. PROJECT PROBLEM STATEMENT
+==================================================
+
+The application is based on the following problem statement:
+
+"Create a dashboard that helps municipal authorities visualize complaints, infrastructure conditions, sanitation data, and maintenance activities."
+
+The system should help municipal authorities monitor civic issues, understand problem areas, track infrastructure conditions, monitor sanitation, and manage maintenance activities from one centralized dashboard.
+
+This must be a REAL WORKING FULL-STACK APPLICATION.
+
+Do NOT create only a static frontend.
+
+The application must have:
+- Real database persistence
+- Real CRUD operations
+- Real authentication
+- Real API/data access
+- Real dashboard statistics
+- Real search and filtering
+- Production-ready environment configuration
+- Responsive UI
+- Error handling
+- Loading states
+- Empty states
+- Security
+- Deployment readiness
+
+==================================================
+2. REQUIRED TECHNOLOGY STACK
+==================================================
+
+Frontend:
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Recharts
+- Lucide React
+- TanStack Query where useful
+
+Backend:
+- Node.js
+- Express
+- TypeScript
+
+Database:
+- Supabase PostgreSQL
+
+Authentication:
+- Supabase Auth
+
+Database client:
+- @supabase/supabase-js
+
+Do NOT use SQLite.
+
+Do NOT use an in-memory database.
+
+Do NOT store application data only in localStorage.
+
+All important application data must be stored in Supabase PostgreSQL.
+
+==================================================
+3. SUPABASE CONFIGURATION
+==================================================
+
+The application must use environment variables.
+
+NEVER hardcode Supabase credentials into source code.
+
+Use these environment variables:
+
+VITE_SUPABASE_URL= https://tyvyecternfdouilzekk.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY= your_supabase_publishable_key_here
+
+For backend/server-only operations use:
+
+SUPABASE_URL=https://your-project-id.supabase.co/rest/v1/
+SUPABASE_SECRET_KEY=your_supabase_secret_key_here
+
+IMPORTANT SECURITY RULE:
+
+The Supabase secret key must NEVER be exposed to the browser.
+
+Never place SUPABASE_SECRET_KEY inside frontend code.
+
+Never prefix the secret key with VITE_.
+
+The publishable key may be used by the browser, but all database tables must have proper Row Level Security policies.
+
+Do not print API keys in logs.
+
+Do not commit secrets to GitHub.
+
+Create a .env.example file containing placeholders only.
+
+Example:
+
+VITE_SUPABASE_URL= https://your-project-id.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY= your_supabase_publishable_key_here
+SUPABASE_URL= https://your-project-id.supabase.co/rest/v1/
+SUPABASE_SECRET_KEY= your_supabase_secret_key_here
+==================================================
+4. DATABASE ARCHITECTURE
+==================================================
+
+Use Supabase PostgreSQL.
+
+Create the following tables.
+
+------------------------------------------
+profiles
+------------------------------------------
+
+id UUID primary key
+full_name
+email
+role
+department
+created_at
+updated_at
+
+Roles:
+
+- admin
+- municipal_officer
+- department_officer
+- viewer
+
+------------------------------------------
+areas
+------------------------------------------
+
+id UUID primary key
+name
+code
+description
+population
+created_at
+updated_at
+
+Create demo areas:
+
+Central Zone
+North Zone
+South Zone
+East Zone
+West Zone
+
+------------------------------------------
+complaints
+------------------------------------------
+
+id UUID primary key
+complaint_number
+title
+description
+category
+location
+area_id
+priority
+status
+reported_by
+assigned_department
+assigned_officer
+reported_at
+resolved_at
+created_at
+updated_at
+
+Categories:
+
+Roads
+Streetlights
+Water Supply
+Drainage
+Waste Management
+Public Safety
+Other
+
+Priority:
+
+Low
+Medium
+High
+Critical
+
+Status:
+
+Pending
+In Progress
+Resolved
+Rejected
+
+------------------------------------------
+infrastructure
+------------------------------------------
+
+id UUID primary key
+asset_number
+asset_type
+name
+location
+area_id
+condition
+status
+last_inspection
+next_maintenance
+description
+created_at
+updated_at
+
+Asset types:
+
+Road
+Streetlight
+Water Pipeline
+Drainage
+Public Building
+Bridge
+Other
+
+Condition:
+
+Good
+Fair
+Poor
+Critical
+
+Status:
+
+Operational
+Needs Maintenance
+Under Repair
+Non Operational
+
+------------------------------------------
+sanitation
+------------------------------------------
+
+id UUID primary key
+area_id
+location
+waste_level
+collection_status
+last_collection
+next_collection
+assigned_team
+condition
+notes
+created_at
+updated_at
+
+Waste levels:
+
+Low
+Medium
+High
+Critical
+
+Collection status:
+
+Scheduled
+Collected
+Delayed
+Missed
+
+Condition:
+
+Clean
+Moderate
+Needs Attention
+Critical
+
+------------------------------------------
+maintenance
+------------------------------------------
+
+id UUID primary key
+maintenance_number
+title
+description
+category
+location
+area_id
+assigned_department
+assigned_team
+priority
+status
+start_date
+expected_completion
+actual_completion
+progress
+created_at
+updated_at
+
+Status:
+
+Planned
+In Progress
+Completed
+Delayed
+Cancelled
+
+Progress:
+0-100
+
+------------------------------------------
+notifications
+------------------------------------------
+
+id UUID primary key
+user_id
+title
+message
+type
+is_read
+created_at
+
+==================================================
+5. DATABASE RELATIONSHIPS
+==================================================
+
+Use foreign keys.
+
+areas.id should be referenced by:
+
+complaints.area_id
+infrastructure.area_id
+sanitation.area_id
+maintenance.area_id
+
+profiles.id should be used where appropriate for user ownership.
+
+Use proper indexes for:
+
+complaints.status
+complaints.priority
+complaints.category
+complaints.area_id
+complaints.reported_at
+
+infrastructure.condition
+infrastructure.area_id
+
+sanitation.collection_status
+sanitation.area_id
+
+maintenance.status
+maintenance.area_id
+
+==================================================
+6. ROW LEVEL SECURITY
+==================================================
+
+Enable Row Level Security on every application table.
+
+Create secure policies.
+
+Authenticated users can read authorized civic data.
+
+Admin users can:
+- create
+- read
+- update
+- delete
+
+Municipal officers can:
+- read
+- create
+- update relevant records
+
+Department officers can:
+- read
+- update records assigned to their department
+
+Viewers can:
+- read only
+
+Never disable RLS just to make the application work.
+
+Do not use the secret key from frontend code.
+
+==================================================
+7. AUTHENTICATION
+==================================================
+
+Implement Supabase Authentication.
+
+Create:
+
+Login page
+Register page
+Forgot password page
+Reset password flow
+Logout
+Protected routes
+
+Login fields:
+
+Email
+Password
+
+After login redirect to:
+
+/dashboard
+
+Display the logged-in user's name and role in the sidebar/profile menu.
+
+Protect all dashboard routes.
+
+Unauthenticated users should not access:
+
+/dashboard
+/complaints
+/infrastructure
+/sanitation
+/maintenance
+/areas
+/reports
+/settings
+
+==================================================
+8. APPLICATION LAYOUT
+==================================================
+
+Create a professional government/smart-city dashboard.
+
+Desktop layout:
+
+Left sidebar
+Top navigation
+Main content area
+
+Sidebar:
+
+SMART CIVIC
+
+Dashboard
+Complaints
+Infrastructure
+Sanitation
+Maintenance
+Areas
+Reports
+Notifications
+Settings
+
+Bottom of sidebar:
+
+User profile
+Role
+Logout
+
+Top bar:
+
+Page title
+Search
+Notifications
+User avatar
+Theme toggle
+
+==================================================
+9. DASHBOARD
+==================================================
+
+Create /dashboard.
+
+Display KPI cards:
+
+Total Complaints
+Pending Complaints
+In Progress Complaints
+Resolved Complaints
+Infrastructure Issues
+Sanitation Issues
+Active Maintenance
+Critical Issues
+
+IMPORTANT:
+
+These numbers MUST come from Supabase database queries.
+
+Do not hardcode dashboard numbers.
+
+Calculate:
+
+Total complaints:
+COUNT complaints
+
+Pending:
+status = Pending
+
+In Progress:
+status = In Progress
+
+Resolved:
+status = Resolved
+
+Infrastructure Issues:
+condition IN (Poor, Critical)
+
+Sanitation Issues:
+condition IN (Needs Attention, Critical)
+
+Active Maintenance:
+status IN (Planned, In Progress, Delayed)
+
+Critical Issues:
+priority = Critical OR condition = Critical
+
+==================================================
+10. DASHBOARD CHARTS
+==================================================
+
+Create professional charts using Recharts.
+
+Charts:
+
+1. Complaints by Category
+Bar chart
+
+2. Complaint Status
+Pie/Donut chart
+
+3. Complaints by Area
+Bar chart
+
+4. Monthly Complaint Trends
+Line chart
+
+5. Infrastructure Condition
+Donut chart
+
+6. Sanitation Condition
+Bar chart
+
+7. Maintenance Progress
+Progress visualization
+
+8. Priority Distribution
+Bar chart
+
+Charts must use live Supabase data.
+
+Do not hardcode chart values.
+
+==================================================
+11. RECENT COMPLAINTS
+==================================================
+
+Dashboard should show latest complaints.
+
+Columns:
+
+Complaint ID
+Title
+Category
+Area
+Priority
+Status
+Date
+
+Add:
+
+View
+Edit
+
+buttons.
+
+==================================================
+12. CRITICAL ISSUES SECTION
+==================================================
+
+Create a dashboard section called:
+
+Critical Civic Issues
+
+Show complaints/infrastructure/sanitation/maintenance records marked Critical.
+
+Each item should show:
+
+Type
+Title
+Location
+Area
+Priority
+Status
+Date
+
+Make critical issues visually noticeable but professional.
+
+==================================================
+13. COMPLAINT MANAGEMENT
+==================================================
+
+Create:
+
+/complaints
+
+Features:
+
+Search
+Filter
+Sort
+Pagination
+Create
+View
+Edit
+Delete
+Status update
+
+Filters:
+
+Category
+Area
+Priority
+Status
+Date
+
+Complaint table:
+
+Complaint Number
+Title
+Category
+Area
+Location
+Priority
+Status
+Reported Date
+Assigned Department
+Actions
+
+Create a complaint form.
+
+Fields:
+
+Title
+Description
+Category
+Location
+Area
+Priority
+Assigned Department
+Assigned Officer
+
+Validate required fields.
+
+Show success/error notifications.
+
+==================================================
+14. COMPLAINT DETAILS
+==================================================
+
+Create:
+
+/complaints/:id
+
+Show:
+
+Complaint information
+Description
+Location
+Area
+Priority
+Status
+Assigned department
+Assigned officer
+Timeline
+Created date
+Updated date
+Resolved date
+
+Allow authorized users to change status.
+
+Create a simple status timeline:
+
+Reported
+Assigned
+In Progress
+Resolved
+
+==================================================
+15. INFRASTRUCTURE
+==================================================
+
+Create:
+
+/infrastructure
+
+Show infrastructure assets.
+
+Table:
+
+Asset Number
+Asset Type
+Name
+Location
+Area
+Condition
+Status
+Last Inspection
+Next Maintenance
+Actions
+
+Filters:
+
+Asset Type
+Area
+Condition
+Status
+
+Create and edit forms.
+
+Dashboard:
+
+Infrastructure condition summary.
+
+Highlight:
+
+Good
+Fair
+Poor
+Critical
+
+==================================================
+16. SANITATION
+==================================================
+
+Create:
+
+/sanitation
+
+Show sanitation monitoring.
+
+Display:
+
+Area
+Location
+Waste Level
+Collection Status
+Last Collection
+Next Collection
+Assigned Team
+Condition
+
+Filters:
+
+Area
+Waste Level
+Collection Status
+Condition
+
+Create sanitation record.
+
+Allow authorized users to update collection status.
+
+Show sanitation alerts.
+
+Example:
+
+Missed Collection
+High Waste Level
+Critical Sanitation Condition
+
+==================================================
+17. MAINTENANCE
+==================================================
+
+Create:
+
+/maintenance
+
+Display maintenance activities.
+
+Columns:
+
+Maintenance ID
+Task
+Category
+Location
+Area
+Assigned Department
+Team
+Priority
+Status
+Progress
+Expected Completion
+
+Create/edit maintenance records.
+
+Use progress bars.
+
+Progress must be 0-100.
+
+Show:
+
+Planned
+In Progress
+Completed
+Delayed
+
+Create maintenance summary cards.
+
+==================================================
+18. AREA OVERVIEW
+==================================================
+
+Create:
+
+/areas
+
+Show every municipal area.
+
+For each area display:
+
+Total Complaints
+Pending Complaints
+Infrastructure Issues
+Sanitation Issues
+Active Maintenance
+
+Create area cards.
+
+Clicking an area should open:
+
+/areas/:id
+
+Area detail page should show:
+
+Complaint statistics
+Infrastructure statistics
+Sanitation statistics
+Maintenance statistics
+Recent activity
+
+==================================================
+19. REPORTS
+==================================================
+
+Create:
+
+/reports
+
+Allow users to generate civic reports.
+
+Report categories:
+
+Complaint Report
+Infrastructure Report
+Sanitation Report
+Maintenance Report
+Area Report
+
+Filters:
+
+Start Date
+End Date
+Area
+Category
+Status
+
+Display results in tables and charts.
+
+Add:
+
+Export CSV
+
+Add:
+
+Print Report
+
+Make reports print-friendly.
+
+==================================================
+20. SEARCH
+==================================================
+
+Create global search.
+
+Search across:
+
+Complaints
+Infrastructure
+Sanitation
+Maintenance
+Areas
+
+Display grouped search results.
+
+Clicking a result should open the relevant detail page.
+
+==================================================
+21. NOTIFICATIONS
+==================================================
+
+Create notification system.
+
+Generate notifications for:
+
+Critical complaint
+Critical infrastructure condition
+Missed waste collection
+Delayed maintenance
+Upcoming maintenance
+Overdue maintenance
+
+Show notification badge in navbar.
+
+Allow marking notifications as read.
+
+==================================================
+22. RESPONSIVE DESIGN
+==================================================
+
+The application MUST work on:
+
+Desktop
+Laptop
+Tablet
+Mobile
+
+Sidebar becomes mobile drawer.
+
+Tables should become horizontally scrollable or responsive cards.
+
+Charts should resize automatically.
+
+Forms must work on mobile.
+
+==================================================
+23. UI DESIGN
+==================================================
+
+Use a premium smart-city government dashboard style.
+
+Design goals:
+
+Modern
+Professional
+Clean
+Trustworthy
+Data-focused
+
+Use:
+
+Blue
+Green
+White
+Neutral gray
+
+Avoid excessive gradients.
+
+Avoid childish UI.
+
+Use Lucide icons.
+
+Use consistent spacing.
+
+Use professional typography.
+
+Use cards with subtle borders/shadows.
+
+Use status badges.
+
+Use responsive charts.
+
+Add smooth but subtle animations.
+
+==================================================
+24. DARK MODE
+==================================================
+
+Add light/dark mode.
+
+Save the user's theme preference.
+
+Make sure charts and tables work correctly in both themes.
+
+==================================================
+25. ERROR HANDLING
+==================================================
+
+Implement proper error handling.
+
+If Supabase fails:
+
+Show:
+"Unable to load data. Please try again."
+
+Do not expose database errors directly to users.
+
+Log useful errors on the server.
+
+Create:
+
+404 page
+500 error state
+Empty states
+Loading skeletons
+
+==================================================
+26. DATABASE SEED DATA
+==================================================
+
+Create realistic demo data.
+
+Insert at least:
+
+50 complaints
+25 infrastructure assets
+25 sanitation records
+25 maintenance records
+5 areas
+
+Use realistic Indian municipal-style locations and names.
+
+Example locations:
+
+Main Road
+Market Area
+Bus Stand Road
+Railway Station Road
+Government Hospital Road
+College Road
+Temple Street
+Residential Zone
+Industrial Area
+
+Do not use real people's private information.
+
+==================================================
+27. API / DATA ACCESS
+==================================================
+
+Create clean API/data service architecture.
+
+The application should have reusable services for:
+
+complaints
+infrastructure
+sanitation
+maintenance
+areas
+dashboard
+notifications
+
+Implement CRUD operations.
+
+Examples:
+
+GET complaints
+GET complaint by ID
+CREATE complaint
+UPDATE complaint
+DELETE complaint
+
+Same pattern for:
+
+infrastructure
+sanitation
+maintenance
+
+Dashboard statistics should be fetched from the database.
+
+==================================================
+28. SECURITY
+==================================================
+
+IMPORTANT:
+
+Never expose:
+
+SUPABASE_SECRET_KEY
+
+to the frontend.
+
+Never put secrets into GitHub.
+
+Never hardcode credentials.
+
+Use environment variables.
+
+Validate all user inputs.
+
+Use Supabase RLS.
+
+Use authenticated user sessions.
+
+Do not trust role information supplied directly by the browser.
+
+Check authorization server-side/database-side.
+
+==================================================
+29. ENVIRONMENT CONFIGURATION
+==================================================
+
+Create:
+
+.env.example
+
+With:
+
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_URL=
+SUPABASE_SECRET_KEY=
+
+Do NOT create a .env file containing fake keys.
+
+Do NOT print environment variables.
+
+==================================================
+30. SUPABASE SETUP FILES
+==================================================
+
+Create a folder:
+
+supabase/
+
+Inside it create:
+
+schema.sql
+seed.sql
+
+schema.sql must contain:
+
+tables
+constraints
+indexes
+foreign keys
+RLS
+RLS policies
+
+seed.sql must contain realistic sample data.
+
+The SQL must be executable in Supabase SQL Editor.
+
+==================================================
+31. TYPESCRIPT
+==================================================
+
+Use strict TypeScript.
+
+Create shared database types.
+
+Create types for:
+
+Complaint
+Infrastructure
+Sanitation
+Maintenance
+Area
+Profile
+Notification
+
+Avoid using:
+
+any
+
+unless absolutely necessary.
+
+==================================================
+32. PROJECT STRUCTURE
+==================================================
+
+Use a clean structure similar to:
+
+src/
+  components/
+  pages/
+  layouts/
+  hooks/
+  services/
+  lib/
+  types/
+  utils/
+  contexts/
+
+server/
+  routes/
+  middleware/
+  services/
+  utils/
+
+supabase/
+  schema.sql
+  seed.sql
+
+public/
+
+Do not put the entire application in one file.
+
+==================================================
+33. PERFORMANCE
+==================================================
+
+Optimize:
+
+Database queries
+React rendering
+Charts
+Tables
+
+Use pagination for large datasets.
+
+Do not load thousands of records unnecessarily.
+
+Use server-side filtering where appropriate.
+
+Use indexes in Supabase.
+
+==================================================
+34. DATA PERSISTENCE
+==================================================
+
+THIS IS VERY IMPORTANT.
+
+All user-created data must persist after:
+
+Browser refresh
+Logout/login
+Replit restart
+Application redeployment
+Server restart
+
+Never depend on:
+
+localStorage
+session memory
+in-memory arrays
+SQLite
+temporary files
+
+Supabase PostgreSQL must be the source of truth.
+
+==================================================
+35. PRODUCTION DEPLOYMENT
+==================================================
+
+The application must be production-ready.
+
+Do not use development-only configuration.
+
+The server must listen on:
+
+0.0.0.0
+
+Use the PORT environment variable.
+
+Do not hardcode localhost for production API communication.
+
+Make frontend/backend deployment compatible with Replit.
+
+Create a proper production start command.
+
+Ensure:
+
+npm run build
+
+works.
+
+Ensure the production server can serve the application correctly.
+
+==================================================
+36. HEALTH CHECK
+==================================================
+
+Create:
+
+GET /api/health
+
+Response:
+
+{
+  "status": "ok",
+  "database": "connected"
+}
+
+If database connection fails:
+
+{
+  "status": "error",
+  "database": "disconnected"
+}
+
+==================================================
+37. GITHUB READY
+==================================================
+
+Make the project GitHub-ready.
+
+Create:
+
+.gitignore
+
+Make sure it excludes:
+
+.env
+.env.local
+node_modules
+dist
+build
+logs
+temporary files
+
+Never commit:
+
+SUPABASE_SECRET_KEY
+
+==================================================
+38. README
+==================================================
+
+Create a professional README.md.
+
+Include:
+
+Project name
+Problem statement
+Features
+Architecture
+Technology stack
+Database architecture
+Supabase setup
+Environment variables
+Local development
+Replit setup
+GitHub setup
+Deployment
+Security
+Future improvements
+
+==================================================
+39. SETUP GUIDE INSIDE README
+==================================================
+
+Explain:
+
+1. Create Supabase project
+2. Get Project URL
+3. Get Publishable API key
+4. Get Secret API key
+5. Add secrets to Replit
+6. Run schema.sql
+7. Run seed.sql
+8. Start application
+9. Test login
+10. Test CRUD
+11. Deploy
+
+==================================================
+40. AUTOMATED TESTING
+==================================================
+
+Before considering the project complete:
+
+Test:
+
+Authentication
+Dashboard
+Complaints CRUD
+Infrastructure CRUD
+Sanitation CRUD
+Maintenance CRUD
+Area pages
+Reports
+Search
+Filters
+CSV export
+Notifications
+Responsive layout
+Dark mode
+Database connection
+
+Fix all errors.
+
+==================================================
+41. FINAL QUALITY CHECK
+==================================================
+
+Before finishing, verify:
+
+No TypeScript errors
+No build errors
+No console errors caused by the application
+No broken routes
+No broken buttons
+No fake dashboard statistics
+No hardcoded database data
+No hardcoded API keys
+No exposed secret keys
+Supabase connection works
+RLS is enabled
+CRUD works
+Authentication works
+Data persists after refresh
+Data persists after application restart
+Production build works
+
+==================================================
+42. IMPORTANT DEVELOPMENT BEHAVIOR
+==================================================
+
+Do NOT simply generate a mock UI.
+
+Actually implement functionality.
+
+If a feature cannot be implemented immediately, create the proper architecture for it and clearly explain what remains.
+
+When you encounter an error:
+
+1. Diagnose root cause.
+2. Fix the root cause.
+3. Run the application again.
+4. Test the affected functionality.
+5. Do not randomly rewrite working code.
+
+Do not ask me unnecessary questions.
+
+Make sensible technical decisions.
+
+==================================================
+43. FIRST ACTION
+==================================================
+
+Start by analyzing the requirements.
+
+Then:
+
+1. Create the project architecture.
+2. Install dependencies.
+3. Create Supabase integration.
+4. Create database schema.
+5. Create seed data.
+6. Create authentication.
+7. Create dashboard.
+8. Create CRUD modules.
+9. Create reports.
+10. Add responsive UI.
+11. Test the application.
+12. Fix all errors.
+13. Prepare it for production deployment.
+
+Do not stop at the UI.
+
+The final output must be a complete, working Smart Civic Resource Dashboard.

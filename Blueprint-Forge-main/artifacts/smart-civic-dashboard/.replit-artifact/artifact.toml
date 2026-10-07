@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Smart Civic Resource Dashboard"
+description = "A municipal operations dashboard for authorized civic teams to track complaints, infrastructure, sanitation, maintenance, area performance, and reports."
+version = "1.0.0"
+id = "artifacts/smart-civic-dashboard"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21712
+
+[services.development]
+run = "pnpm --filter @workspace/smart-civic-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/smart-civic-dashboard", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/smart-civic-dashboard/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21712"
+BASE_PATH = "/"

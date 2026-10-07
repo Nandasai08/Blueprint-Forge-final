@@ -1,0 +1,476 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Civic resource dashboard API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: civic
+    description: Civic records and dashboard operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /health:
+    get:
+      operationId: apiHealthCheck
+      tags: [health]
+      summary: Check API and Supabase connectivity
+      responses:
+        "200":
+          description: Supabase is reachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiHealthStatus"
+        "503":
+          description: Supabase is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiHealthStatus"
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [civic]
+      summary: Get live municipal dashboard statistics
+      responses:
+        "200":
+          description: Aggregated counts and chart series
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+  /civic/{resource}:
+    parameters:
+      - $ref: "#/components/parameters/Resource"
+    get:
+      operationId: getCivicRecords
+      tags: [civic]
+      summary: Search and page through civic records
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: priority
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: area_id
+          in: query
+          schema: { type: string }
+        - name: condition
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: sort
+          in: query
+          schema: { type: string, default: updated_at }
+        - name: direction
+          in: query
+          schema: { type: string, enum: [asc, desc], default: desc }
+      responses:
+        "200":
+          description: A page of authorized civic records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CivicRecordPage"
+    post:
+      operationId: createCivicRecord
+      tags: [civic]
+      summary: Create a civic record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CivicRecordInput"
+      responses:
+        "201":
+          description: Created civic record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CivicRecord"
+  /civic/{resource}/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Resource"
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: getCivicRecord
+      tags: [civic]
+      summary: Get one civic record
+      responses:
+        "200":
+          description: Civic record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CivicRecord"
+    patch:
+      operationId: updateCivicRecord
+      tags: [civic]
+      summary: Update a civic record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CivicRecordPatch"
+      responses:
+        "200":
+          description: Updated civic record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CivicRecord"
+    delete:
+      operationId: deleteCivicRecord
+      tags: [civic]
+      summary: Delete a civic record
+      responses:
+        "204":
+          description: Deleted
+  /search:
+    get:
+      operationId: searchCivicData
+      tags: [civic]
+      summary: Search across civic resources and areas
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+      responses:
+        "200":
+          description: Grouped matching records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResults"
+  /reports:
+    get:
+      operationId: getCivicReport
+      tags: [civic]
+      summary: Generate a filtered civic report
+      parameters:
+        - name: resource
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/CivicResource"
+        - name: start_date
+          in: query
+          schema: { type: string, format: date }
+        - name: end_date
+          in: query
+          schema: { type: string, format: date }
+        - name: area_id
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Filtered report records and count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CivicReport"
+  /areas/{id}/summary:
+    get:
+      operationId: getAreaSummary
+      tags: [civic]
+      summary: Get area-level civic statistics
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Area metrics and recent activity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaSummary"
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [civic]
+      summary: Get notifications for the signed-in user
+      responses:
+        "200":
+          description: User notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CivicNotification"
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [civic]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CivicNotification"
+  /profile:
+    get:
+      operationId: getCurrentProfile
+      tags: [civic]
+      summary: Get the signed-in user's municipal profile
+      responses:
+        "200":
+          description: Signed-in profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CivicProfile"
+components:
+  parameters:
+    Resource:
+      name: resource
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/CivicResource"
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    ApiHealthStatus:
+      type: object
+      properties:
+        status: { type: string, enum: [ok, error] }
+        database: { type: string, enum: [connected, disconnected] }
+      required: [status, database]
+    CivicResource:
+      type: string
+      enum: [complaints, infrastructure, sanitation, maintenance, areas]
+    CivicRecord:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        complaint_number: { type: [string, "null"] }
+        maintenance_number: { type: [string, "null"] }
+        asset_number: { type: [string, "null"] }
+        title: { type: [string, "null"] }
+        name: { type: [string, "null"] }
+        description: { type: [string, "null"] }
+        category: { type: [string, "null"] }
+        asset_type: { type: [string, "null"] }
+        location: { type: [string, "null"] }
+        area_id: { type: [string, "null"] }
+        area_name: { type: [string, "null"] }
+        code: { type: [string, "null"] }
+        population: { type: [integer, "null"] }
+        priority: { type: [string, "null"] }
+        status: { type: [string, "null"] }
+        condition: { type: [string, "null"] }
+        waste_level: { type: [string, "null"] }
+        collection_status: { type: [string, "null"] }
+        assigned_department: { type: [string, "null"] }
+        assigned_officer: { type: [string, "null"] }
+        assigned_team: { type: [string, "null"] }
+        reported_by: { type: [string, "null"] }
+        reported_at: { type: [string, "null"], format: date-time }
+        resolved_at: { type: [string, "null"], format: date-time }
+        last_inspection: { type: [string, "null"], format: date }
+        next_maintenance: { type: [string, "null"], format: date }
+        last_collection: { type: [string, "null"], format: date-time }
+        next_collection: { type: [string, "null"], format: date-time }
+        start_date: { type: [string, "null"], format: date }
+        expected_completion: { type: [string, "null"], format: date }
+        actual_completion: { type: [string, "null"], format: date }
+        progress: { type: [integer, "null"], minimum: 0, maximum: 100 }
+        notes: { type: [string, "null"] }
+        created_at: { type: [string, "null"], format: date-time }
+        updated_at: { type: [string, "null"], format: date-time }
+      required: [id]
+    CivicRecordInput:
+      type: object
+      properties:
+        complaint_number: { type: string }
+        maintenance_number: { type: string }
+        asset_number: { type: string }
+        title: { type: string }
+        name: { type: string }
+        description: { type: string }
+        category: { type: string }
+        asset_type: { type: string }
+        location: { type: string }
+        area_id: { type: string, format: uuid }
+        code: { type: string }
+        population: { type: integer, minimum: 0 }
+        priority: { type: string }
+        status: { type: string }
+        condition: { type: string }
+        waste_level: { type: string }
+        collection_status: { type: string }
+        assigned_department: { type: string }
+        assigned_officer: { type: string }
+        assigned_team: { type: string }
+        reported_by: { type: string }
+        reported_at: { type: string, format: date-time }
+        resolved_at: { type: string, format: date-time }
+        last_inspection: { type: string, format: date }
+        next_maintenance: { type: string, format: date }
+        last_collection: { type: string, format: date-time }
+        next_collection: { type: string, format: date-time }
+        start_date: { type: string, format: date }
+        expected_completion: { type: string, format: date }
+        actual_completion: { type: string, format: date }
+        progress: { type: integer, minimum: 0, maximum: 100 }
+        notes: { type: string }
+    CivicRecordPatch:
+      allOf:
+        - $ref: "#/components/schemas/CivicRecordInput"
+    CivicRecordPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CivicRecord" }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+      required: [items, total, page, page_size]
+    ChartPoint:
+      type: object
+      properties:
+        name: { type: string }
+        count: { type: number }
+      required: [name, count]
+    DashboardStats:
+      type: object
+      properties:
+        total_complaints: { type: integer }
+        pending_complaints: { type: integer }
+        in_progress_complaints: { type: integer }
+        resolved_complaints: { type: integer }
+        infrastructure_issues: { type: integer }
+        sanitation_issues: { type: integer }
+        active_maintenance: { type: integer }
+        critical_issue_count: { type: integer }
+        complaints_by_category: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        complaints_by_status: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        complaints_by_area: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        monthly_trends: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        infrastructure_condition: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        sanitation_condition: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        maintenance_progress: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        priority_distribution: { type: array, items: { $ref: "#/components/schemas/ChartPoint" } }
+        recent_complaints: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+        critical_issues: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+      required:
+        - total_complaints
+        - pending_complaints
+        - in_progress_complaints
+        - resolved_complaints
+        - infrastructure_issues
+        - sanitation_issues
+        - active_maintenance
+        - critical_issue_count
+    SearchResults:
+      type: object
+      properties:
+        complaints: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+        infrastructure: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+        sanitation: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+        maintenance: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+        areas: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+      required: [complaints, infrastructure, sanitation, maintenance, areas]
+    CivicReport:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+        total: { type: integer }
+        resource: { $ref: "#/components/schemas/CivicResource" }
+      required: [items, total, resource]
+    AreaSummary:
+      type: object
+      properties:
+        area: { $ref: "#/components/schemas/CivicRecord" }
+        total_complaints: { type: integer }
+        pending_complaints: { type: integer }
+        infrastructure_issues: { type: integer }
+        sanitation_issues: { type: integer }
+        active_maintenance: { type: integer }
+        recent_activity: { type: array, items: { $ref: "#/components/schemas/CivicRecord" } }
+      required:
+        - area
+        - total_complaints
+        - pending_complaints
+        - infrastructure_issues
+        - sanitation_issues
+        - active_maintenance
+        - recent_activity
+    CivicNotification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        title: { type: string }
+        message: { type: string }
+        type: { type: string }
+        is_read: { type: boolean }
+        created_at: { type: string, format: date-time }
+      required: [id, title, message, type, is_read, created_at]
+    CivicProfile:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        full_name: { type: [string, "null"] }
+        email: { type: [string, "null"] }
+        role: { type: string }
+        department: { type: [string, "null"] }
+      required: [id, role]
+
